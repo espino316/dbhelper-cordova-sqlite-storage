@@ -83,6 +83,9 @@ DbHelper.prototype.query = function ( sql, params, onSuccess ) {
  */
 DbHelper.prototype.exec = function ( sql, params, onSuccess ) {
 
+	console.log(sql);
+	console.log(params);
+
 	var self = this;
 
 	if ( params == null || params == 'undefined' ) {
@@ -102,22 +105,43 @@ DbHelper.prototype.exec = function ( sql, params, onSuccess ) {
 			var i = 0;
 			var count = keys.length;
 			var newParams = [];
+			var newParam = {};
+			var positions = [];
 
 			for ( i = 0; i < keys.length; i++ ) {
 				position = sql.indexOf( ":" + keys[i] );
+				positions.push(position);
 				sql = sql.replace( ":" + keys[i], "?" );
-				newParams.push(params[keys[i]]);
+
+				newParam = {};
+				newParam.position = position;
+				newParam.value = params[keys[i]];
+				newParams.push(newParam);
 			} // end for
 
-			params = newParams;
+			var fnSort = function(a, b){
+				return a-b
+			};
+
+			positions = positions.sort(fnSort);
+
+			var finalParams = [];
+			for( i in positions ) {
+				for ( j in newParams ) {
+					if ( newParams[j].position == positions[i] ) {
+						finalParams.push( newParams[j].value );
+					} // end if newParams.position = positions[i]
+				} // end for params
+			} // end for positions
+			params = finalParams;
 		} else {
 			//	Here is just list
 			//	Sql statement must contains ?
 			if ( sql.indexOf("?") == -1 ) {
 				throw new DbException("No parameters in sql statement")
-			}
-		}
-	}
+			} // end if sql.indexOf
+		} // end if else NaN(keys[0])
+	} // end if keys.lenght > 0
 
 	var fn = function ( tran ) {
 		tran.executeSql(sql, params, onSuccess, self.onError);
@@ -215,7 +239,9 @@ DbHelper.prototype.upsert = function ( tableName, tableData, keyFields ) {
 			sql = sql.replace("@where", where);
 
 			var fnUpdateOk = function( tran, response) {
-				console.log("Update OK" );
+				console.log("Update OK " + sql);
+				console.log(tableData);
+				console.log('tableData');
 				console.log(response);
 			};
 
