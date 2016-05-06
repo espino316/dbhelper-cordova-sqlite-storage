@@ -1,3 +1,18 @@
+if  ( typeof Array.prototype.contains == "undefined" ) {
+	Array.prototype.contains = function( value ) {
+	  var self = this;
+	  var result = false;
+	  var fn = function ( elem, index, self ) {
+	    if ( elem == value ) {
+	      result = true;
+	    } // end if value
+	  }; // end function fn
+
+	  self.forEach( fn );
+	  return result;
+	}; // end function where
+} // end if not array.prototype.contains
+
 /**
  * Sql lite plugin helper
  */
@@ -83,9 +98,6 @@ DbHelper.prototype.query = function ( sql, params, onSuccess ) {
  */
 DbHelper.prototype.exec = function ( sql, params, onSuccess ) {
 
-	console.log(sql);
-	console.log(params);
-
 	var self = this;
 
 	if ( params == null || params == 'undefined' ) {
@@ -147,6 +159,9 @@ DbHelper.prototype.exec = function ( sql, params, onSuccess ) {
 		tran.executeSql(sql, params, onSuccess, self.onError);
 	};
 
+
+	console.log(sql);
+	console.log(params);
 	self.dataBase.transaction(
 		fn,
 		self.onError,
@@ -221,12 +236,12 @@ DbHelper.prototype.upsert = function ( tableName, tableData, keyFields ) {
 
 			for ( i=0; i<len; i++ ) {
 				if ( where != "" ) {
-					if ( keyFields.indexOf( keys[i] ) == -1 ) {
+					if ( ! keyFields.contains( keys[i] ) ) {
 						//	Here there is no key
 						if ( values == "" ) {
 							values += keys[i] + " = :" + keys[i];
 						} else {
-							values += "," + keys[i] + " = :" + keys[i];
+							values += ", " + keys[i] + " = :" + keys[i];
 						} // end if then else values = ""
 					} // end if indexOf keyFiels
 				} // end if where != ""
@@ -240,9 +255,7 @@ DbHelper.prototype.upsert = function ( tableName, tableData, keyFields ) {
 
 			var fnUpdateOk = function( tran, response) {
 				console.log("Update OK " + sql);
-				console.log(tableData);
 				console.log('tableData');
-				console.log(response);
 			};
 
 			self.exec(sql, tableData, fnUpdateOk);
@@ -271,7 +284,6 @@ DbHelper.prototype.upsert = function ( tableName, tableData, keyFields ) {
 
 			var fnInsertOk = function( tran, response) {
 				console.log("Insert OK" );
-				console.log(response);
 			};
 
 			self.exec(sql, tableData, fnInsertOk);
